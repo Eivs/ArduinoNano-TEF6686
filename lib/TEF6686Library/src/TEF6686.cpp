@@ -35,11 +35,14 @@ void TEF6686::Init()
   {
     tefI2CComm.GetCommand(64, 128, state, 1);
     if (state[0] < 2)
+    {
+      Serial.println("Write Init Data...");
       WriteInitData(INIT_DATA);
-
+    }
     else if (state[0] >= 2)
     {
       Appl_Set_OperationMode(1);
+      Serial.println("Init OK");
     }
   } while (state[0] < 2);
 }

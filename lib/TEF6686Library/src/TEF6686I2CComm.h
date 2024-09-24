@@ -6,7 +6,7 @@
 class TEF6686I2CComm
 {
 private:
-  uint8_t DEVICE_ADDR = 0x64;
+  uint8_t DEVICE_ADDR = 0x65;
 
 public:
   void GetCommand(uint8_t module, uint8_t cmd, uint16_t *response, uint8_t responseLength);
