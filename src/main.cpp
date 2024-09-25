@@ -15,7 +15,7 @@ void setup()
 
 void loop()
 {
-  if (millis() - 500 > lastRDSTime)
+  if (millis() - 100 > lastRDSTime)
   {
     tef.UpdateRDSStatus(); // should be called at least every 87ms
     tef.UpdateQualityStatus();
@@ -25,15 +25,10 @@ void loop()
             tef.Currentfreq % 100,
             tef.rdsData.ms,
             tef.rdsData.ta,
-            ptyLabels[tef.rdsData.pty],
+            pgm_read_byte_near(ptyLabels[tef.rdsData.pty]),
             tef.rdsData.psText,
             tef.rdsData.rtText,
             tef.quality);
-    // display.clearDisplay();
-    // display.setTextSize(1);
-    // display.setTextColor(SH110X_WHITE);
-    // display.setCursor(0, 0);
-    // display.println(buffer);
     Serial.println(buffer);
 
     lastRDSTime = millis();

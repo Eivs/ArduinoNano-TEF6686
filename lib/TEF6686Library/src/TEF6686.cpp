@@ -6,13 +6,13 @@ void TEF6686::WriteInitData(const uint8_t *data)
   uint8_t len, first;
   while (true)
   {
-    len = *pa++;
-    first = *pa;
+    len = pgm_read_byte_near(pa++);
+    first = pgm_read_byte_near(pa);
     if (!len)
       break;
     if (len == 2 && first == 0xff)
     {
-      int delaytime = *(++pa);
+      int delaytime = pgm_read_byte_near(++pa);
       delay(delaytime);
       pa++;
     }
@@ -20,7 +20,7 @@ void TEF6686::WriteInitData(const uint8_t *data)
     {
       Wire.beginTransmission(DEVICE_ADDR);
       for (int i = 0; i < len; i++)
-        Wire.write(*(pa++));
+        Wire.write(pgm_read_byte_near(pa++));
       Wire.endTransmission();
     }
   }
@@ -28,15 +28,25 @@ void TEF6686::WriteInitData(const uint8_t *data)
 
 void TEF6686::Init()
 {
+  byte error;
   delay(40);
   Wire.begin(DEVICE_ADDR);
   uint16_t state[1];
+
+  Wire.beginTransmission(DEVICE_ADDR);
+  error = Wire.endTransmission();
+
   do
   {
+    if (error != 0)
+    {
+      Serial.println(String("No I2C devices found"));
+      return;
+    }
     tefI2CComm.GetCommand(64, 128, state, 1);
     if (state[0] < 2)
     {
-      Serial.println("Write Init Data...");
+      Serial.println("Start writing init data");
       WriteInitData(INIT_DATA);
     }
     else if (state[0] >= 2)
