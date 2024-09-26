@@ -1,5 +1,54 @@
 #include <TEF6686.h>
 
+void TEF6686::Write(uint8_t *buf, uint8_t len)
+{
+  Wire.beginTransmission(DEVICE_ADDR);
+  for (int i = 0; i < len; i++)
+    Wire.write(*buf++);
+  Wire.endTransmission();
+}
+
+void TEF6686::Read(uint8_t *buf, uint8_t len)
+{
+  uint8_t lenrec = Wire.requestFrom(DEVICE_ADDR, len);
+  for (int i = 0; i < lenrec; i++)
+    *buf++ = Wire.read();
+}
+
+void TEF6686::Set_Cmd(uint8_t mdl, uint8_t cmd, int len, ...)
+{
+  uint8_t buf[31];
+  uint16_t temp;
+  va_list vArgs;
+  va_start(vArgs, len);
+  buf[0] = mdl;
+  buf[1] = cmd;
+  buf[2] = 1;
+  for (uint8_t i = 0; i < len; i++)
+  {
+    temp = va_arg(vArgs, uint16_t);
+    buf[3 + i * 2] = (uint8_t)(temp >> 8);
+    buf[4 + i * 2] = (uint8_t)temp;
+  }
+  va_end(vArgs);
+  Write(buf, len * 2 + 3);
+}
+
+void TEF6686::Get_Cmd(uint8_t mdl, uint8_t cmd, int16_t *receive, int len)
+{
+  uint8_t buf[3];
+  buf[0] = mdl;
+  buf[1] = cmd;
+  buf[2] = 1;
+  Write(buf, 3);
+  Read((uint8_t *)receive, 2 * len);
+  for (uint8_t i = 0; i < len; i++)
+  {
+    uint16_t newval = (uint8_t)(receive[i] >> 8) | (((uint8_t)(receive[i])) << 8);
+    receive[i] = newval;
+  }
+}
+
 void TEF6686::WriteInitData(const uint8_t *data)
 {
   uint8_t *pa = (uint8_t *)data;
@@ -60,10 +109,16 @@ void TEF6686::Init()
 void TEF6686::Tune_To(uint8_t module, uint16_t freq)
 {
   uint16_t params[2] = {1, freq};
-  tefI2CComm.SetCommand(module, 0x1, params, 2);
+  tefI2CComm.SetCommand(module, 1, params, 2);
   Currentfreq = freq;
   memset(rdsData.rtText, 0, sizeof(rdsData.rtText));
   memset(rdsData.psText, 0, sizeof(rdsData.psText));
+}
+
+void TEF6686::Audio_Set_Volume(uint8_t volume)
+{
+  uint16_t params[1] = {1};
+  tefI2CComm.SetCommand(MODULE_AUDIO, 10, params, volume * 7 - 600);
 }
 
 void TEF6686::Audio_Set_Mute(uint8_t mute)

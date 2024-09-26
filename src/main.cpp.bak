@@ -19,37 +19,22 @@ unsigned long lastRDSTime;
 
 void setup()
 {
-  Serial.begin(9600);
-  delay(200); // wait for the OLED to power up
+  delay(250); // wait for the OLED to power up
+  display.begin(OLED_i2c_Address, true); // Address 0x3C default
+  //display.setContrast (0); // dim display
+  display.display();
+  delay(2000);
+  // Clear the buffer.
+  display.clearDisplay();
 
-  tef.Init();
-  tef.Audio_Set_Mute(0);             // disable mute
-  tef.Tune_To(tef.MODULE_FM, 10460); // tune FM to 104,6
+  // text display tests
+  display.setTextSize(1);
+  display.setTextColor(SH110X_WHITE);
+  display.setCursor(0, 0);
+  display.println("Hello World!");
 }
 
 void loop()
 {
-  if (millis() - 500 > lastRDSTime)
-  {
-    tef.UpdateRDSStatus(); // should be called at least every 87ms
-    tef.UpdateQualityStatus();
-    char buffer[200];
-    sprintf(buffer, "Freq: %i.%i, MS: %i, TA: %i, PTY: %s, PS: %s,  RT: %s, Quality: %i\n",
-            tef.Currentfreq / 100,
-            tef.Currentfreq % 100,
-            tef.rdsData.ms,
-            tef.rdsData.ta,
-            ptyLabels[tef.rdsData.pty],
-            tef.rdsData.psText,
-            tef.rdsData.rtText,
-            tef.quality);
-    // display.clearDisplay();
-    // display.setTextSize(1);
-    // display.setTextColor(SH110X_WHITE);
-    // display.setCursor(0, 0);
-    // display.println(buffer);
-    Serial.println(buffer);
 
-    lastRDSTime = millis();
-  }
 }
